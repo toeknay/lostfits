@@ -1,0 +1,70 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    env_file: ./services/api/.env
+    working_dir: /app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+    depends_on: [db, redis]
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    env_file: ./services/api/.env
+    working_dir: /app
+    command: bash -lc "rq worker --url $REDIS_URL default"
+    depends_on: [redis, db]
+    restart: unless-stopped
+
+  scheduler:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    env_file: ./services/api/.env
+    working_dir: /app
+    command: python -m app.scheduler
+    depends_on: [redis]
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: lostfits
+      POSTGRES_PASSWORD: lostfits
+      POSTGRES_DB: lostfits
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+
+  rq-dashboard:
+    image: eoranged/rq-dashboard
+    environment:
+      RQ_DASHBOARD_REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+    ports: ["9181:9181"]
+    depends_on: [redis]
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./frontend/vue-app/dist:/srv/www
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
