@@ -1,6 +1,8 @@
-from sqlalchemy import BigInteger, Column, Date, Integer, String, UniqueConstraint, DateTime
+from sqlalchemy import BigInteger, Column, Date, DateTime, Integer, String, UniqueConstraint
 from sqlalchemy.sql import func
+
 from app.db import Base
+
 
 class FitAggregateDaily(Base):
     __tablename__ = "fit_aggregate_daily"

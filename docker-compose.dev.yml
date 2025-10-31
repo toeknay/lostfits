@@ -18,3 +18,15 @@ services:
   rq-dashboard:
     ports:
       - "9181:9181"
+
+  api:
+    volumes:
+      - ./services/api:/app
+
+  worker:
+    volumes:
+      - ./services/api:/app
+
+  scheduler:
+    volumes:
+      - ./services/api:/app

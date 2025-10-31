@@ -37,6 +37,11 @@ line-length = 100
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.ruff.lint]
 select = ["E","F","I","UP","B"]
 ignore = ["E501"]
 
@@ -45,3 +50,8 @@ python_version = "3.12"
 strict = false
 warn_return_any = true
 warn_unused_ignores = true
+ignore_missing_imports = true
+
+[project.optional-dependencies]
+dev = ["types-redis>=4.6"]
+

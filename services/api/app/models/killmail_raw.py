@@ -1,6 +1,8 @@
-from sqlalchemy import BigInteger, Column, DateTime, JSON, String
+from sqlalchemy import JSON, BigInteger, Column, DateTime, String
 from sqlalchemy.sql import func
+
 from app.db import Base
+
 
 class KillmailRaw(Base):
     __tablename__ = "killmail_raw"

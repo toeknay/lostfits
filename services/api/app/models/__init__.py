@@ -1,4 +1,6 @@
 from .fit import Fit
-from .killmail_raw import KillmailRaw
-from .item_type import ItemType
 from .fit_aggregate_daily import FitAggregateDaily
+from .item_type import ItemType
+from .killmail_raw import KillmailRaw
+
+__all__ = ["Fit", "FitAggregateDaily", "ItemType", "KillmailRaw"]

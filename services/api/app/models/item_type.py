@@ -1,5 +1,7 @@
 from sqlalchemy import BigInteger, Column, Integer, String
+
 from app.db import Base
+
 
 class ItemType(Base):
     __tablename__ = "item_type"
