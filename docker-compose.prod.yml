@@ -1,0 +1,12 @@
+services:
+  caddy:
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in env}  # e.g., DOMAIN=lostfits.com
+    volumes:
+      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
+
+  # Do NOT expose dashboard in prod (profiles already prevent it)
+  # (no additional config needed)

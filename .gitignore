@@ -1,0 +1,100 @@
+# -----------------------------
+# Core Project: LostFits
+# Python + FastAPI + Vue + Docker
+# -----------------------------
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.egg-info/
+*.log
+*.pot
+*.pyc
+*.mypy_cache/
+*.ruff_cache/
+*.pytest_cache/
+*.coverage
+.coverage.*
+.cache/
+venv/
+env/
+ENV/
+.venv/
+.env.local
+*.lock
+
+# --- FastAPI / Alembic ---
+alembic.ini
+alembic/versions/*.pyc
+alembic/versions/__pycache__/
+alembic/versions/*.bak
+alembic/versions/*.tmp
+*.db-journal
+
+# --- Node / Vue / Vite ---
+frontend/vue-app/node_modules/
+frontend/vue-app/dist/
+frontend/vue-app/.vite/
+frontend/vue-app/.DS_Store
+frontend/vue-app/*.local
+frontend/vue-app/package-lock.json
+
+# --- Environment & Secrets ---
+.env
+.env.*
+!*.env.example
+
+# --- Docker ---
+*.pid
+*.seed
+*.bak
+*.tmp
+*.swp
+.docker/
+docker-compose.override.yml
+docker-compose.override.yaml
+**/pgdata/
+**/caddy_data/
+**/caddy_config/
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- macOS ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# --- Logs & Dumps ---
+*.log
+*.out
+*.err
+logs/
+*.sql
+*.dump
+
+# --- Misc ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.npm/
+node_modules/
+coverage/
+htmlcov/
+build/
+dist/
+tmp/
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo

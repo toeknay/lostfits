@@ -2,7 +2,11 @@ from rq import Queue
 from redis import Redis
 import os
 
-redis = Redis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
+# OLD (bad default for containers):
+# redis = Redis.from_url(os.environ.get("REDIS_URL", "redis://localhost:6379/0"))
+
+# NEW (correct default for Docker networking):
+redis = Redis.from_url(os.environ.get("REDIS_URL", "redis://redis:6379/0"))
 q = Queue("default", connection=redis)
 
 def enqueue_demo():
