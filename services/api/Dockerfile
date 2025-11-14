@@ -20,6 +20,8 @@ RUN uv pip compile pyproject.toml -o requirements.txt --generate-hashes && \
 
 # 3) now copy the application (keeps layer caching sensible)
 COPY app /app/app
+COPY alembic /app/alembic
+COPY alembic.ini /app/alembic.ini
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

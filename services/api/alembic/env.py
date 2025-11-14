@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import sys
 from logging.config import fileConfig
+from pathlib import Path
 
 from sqlalchemy import engine_from_config, pool
+
+# Add parent directory to path so we can import app
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import app.models  # noqa: F401
 from alembic import context
