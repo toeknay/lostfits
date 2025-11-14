@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query
 
 from app.tasks.aggregate import aggregate_all_historical_data, aggregate_fits_daily
 from app.tasks.ingest import q, seed_types_from_killmails
+from app.tasks.universe import seed_universe_from_esi
 
 router = APIRouter()
 
@@ -81,4 +82,22 @@ def trigger_full_aggregation() -> dict[str, Any]:
         "status": "queued",
         "job_id": job.id,
         "message": "Full historical aggregation job has been queued. This may take a while.",
+    }
+
+
+@router.post("/api/admin/seed-universe")
+def trigger_universe_seeding() -> dict[str, Any]:
+    """
+    Trigger seeding of universe data (regions, constellations, solar systems) from ESI.
+    This will take several minutes due to ESI rate limiting (~8k solar systems).
+
+    Returns:
+        dict with job status
+    """
+    job = q.enqueue(seed_universe_from_esi, job_timeout="60m")
+
+    return {
+        "status": "queued",
+        "job_id": job.id,
+        "message": "Universe seeding job has been queued. This will take 10-15 minutes. Check RQ dashboard for progress.",
     }

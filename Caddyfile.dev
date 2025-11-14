@@ -6,14 +6,19 @@
 :80 {
   encode zstd gzip
 
-  @api path /api* /docs* /openapi.json
-  handle @api {
-    reverse_proxy api:8000
-  }
+  # Use route to ensure proper order of processing
+  route {
+    # API routes - proxy to backend
+    reverse_proxy /api/* api:8000
+    reverse_proxy /docs api:8000
+    reverse_proxy /docs/* api:8000
+    reverse_proxy /openapi.json api:8000
 
-  root * /srv/www
-  file_server
-  try_files {path} /index.html
+    # Frontend SPA - serve static files with fallback to index.html
+    root * /srv/www
+    try_files {path} /index.html
+    file_server
+  }
 
   log {
     output stdout
