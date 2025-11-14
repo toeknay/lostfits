@@ -3,17 +3,41 @@
 from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.security import APIKeyHeader
 
+from app.config import settings
 from app.tasks.aggregate import aggregate_all_historical_data, aggregate_fits_daily
 from app.tasks.ingest import q, seed_types_from_killmails
 from app.tasks.universe import seed_universe_from_esi
 
 router = APIRouter()
 
+# Simple API key authentication for admin endpoints
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def verify_admin_key(api_key: str | None = Depends(api_key_header)) -> None:
+    """
+    Verify that the provided API key matches the configured admin key.
+
+    Raises:
+        HTTPException: If API key is missing or invalid
+    """
+    # If no admin key is configured, allow access (development mode)
+    if not settings.admin_api_key:
+        return
+
+    if not api_key or api_key != settings.admin_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API key",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+
 
 @router.post("/api/admin/seed-types")
-def trigger_type_seeding() -> dict[str, Any]:
+def trigger_type_seeding(_: None = Depends(verify_admin_key)) -> dict[str, Any]:
     """
     Trigger seeding of item types from existing killmails.
     This will queue jobs to fetch ship and module names from ESI.
@@ -31,7 +55,7 @@ def trigger_type_seeding() -> dict[str, Any]:
 
 
 @router.get("/api/admin/queue-stats")
-def get_queue_stats() -> dict[str, Any]:
+def get_queue_stats(_: None = Depends(verify_admin_key)) -> dict[str, Any]:
     """
     Get Redis queue statistics.
 
@@ -49,6 +73,7 @@ def get_queue_stats() -> dict[str, Any]:
 @router.post("/api/admin/aggregate-daily")
 def trigger_daily_aggregation(
     target_date: date | None = Query(default=None, description="Date to aggregate (YYYY-MM-DD)"),
+    _: None = Depends(verify_admin_key),
 ) -> dict[str, Any]:
     """
     Trigger daily fit aggregation for a specific date.
@@ -68,7 +93,7 @@ def trigger_daily_aggregation(
 
 
 @router.post("/api/admin/aggregate-all")
-def trigger_full_aggregation() -> dict[str, Any]:
+def trigger_full_aggregation(_: None = Depends(verify_admin_key)) -> dict[str, Any]:
     """
     Trigger aggregation of all historical data.
     This will backfill the fit_aggregate_daily table.
@@ -86,7 +111,7 @@ def trigger_full_aggregation() -> dict[str, Any]:
 
 
 @router.post("/api/admin/seed-universe")
-def trigger_universe_seeding() -> dict[str, Any]:
+def trigger_universe_seeding(_: None = Depends(verify_admin_key)) -> dict[str, Any]:
     """
     Trigger seeding of universe data (regions, constellations, solar systems) from ESI.
     This will take several minutes due to ESI rate limiting (~8k solar systems).

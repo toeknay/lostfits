@@ -2,8 +2,10 @@
 import { ref, computed, watch } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
+import { useToast } from '../composables/useToast'
 
 const router = useRouter()
+const { showError } = useToast()
 
 // Filter state
 const days = ref(7)
@@ -49,49 +51,73 @@ const queryParams = computed(() => {
 // Fetch ships
 async function fetchShips() {
   const res = await fetch('/api/ships')
-  if (!res.ok) throw new Error('Failed to fetch ships')
+  if (!res.ok) {
+    throw new Error('Failed to load ship types')
+  }
   return await res.json()
 }
 
-const { data: shipsData } = useQuery({
+const { data: shipsData, isError: shipsError } = useQuery({
   queryKey: ['ships'],
   queryFn: fetchShips,
+  retry: 2,
+  onError: (error: Error) => {
+    showError(error.message)
+  },
 })
 
 // Fetch regions
 async function fetchRegions() {
   const res = await fetch('/api/universe/regions')
-  if (!res.ok) throw new Error('Failed to fetch regions')
+  if (!res.ok) {
+    throw new Error('Failed to load regions')
+  }
   return await res.json()
 }
 
-const { data: regionsData } = useQuery({
+const { data: regionsData, isError: regionsError } = useQuery({
   queryKey: ['regions'],
   queryFn: fetchRegions,
+  retry: 2,
+  onError: (error: Error) => {
+    showError(error.message)
+  },
 })
 
 // Fetch all constellations
 async function fetchAllConstellations() {
   const res = await fetch('/api/universe/constellations')
-  if (!res.ok) throw new Error('Failed to fetch constellations')
+  if (!res.ok) {
+    throw new Error('Failed to load constellations')
+  }
   return await res.json()
 }
 
-const { data: allConstellationsData } = useQuery({
+const { data: allConstellationsData, isError: constellationsError } = useQuery({
   queryKey: ['all-constellations'],
   queryFn: fetchAllConstellations,
+  retry: 2,
+  onError: (error: Error) => {
+    showError(error.message)
+  },
 })
 
 // Fetch all systems
 async function fetchAllSystems() {
   const res = await fetch('/api/universe/systems')
-  if (!res.ok) throw new Error('Failed to fetch systems')
+  if (!res.ok) {
+    throw new Error('Failed to load solar systems')
+  }
   return await res.json()
 }
 
-const { data: allSystemsData } = useQuery({
+const { data: allSystemsData, isError: systemsError } = useQuery({
   queryKey: ['all-systems'],
   queryFn: fetchAllSystems,
+  retry: 2,
+  onError: (error: Error) => {
+    showError(error.message)
+  },
 })
 
 // Filtered constellations based on selected regions
@@ -165,13 +191,19 @@ watch([selectedConstellations, constellationMode, selectedRegions, regionMode], 
 // Fetch popular fits
 async function fetchPopularFits() {
   const res = await fetch(`/api/fits/popular?${queryParams.value}`)
-  if (!res.ok) throw new Error('Failed to fetch popular fits')
+  if (!res.ok) {
+    throw new Error(res.status === 429 ? 'Too many requests. Please wait a moment.' : 'Failed to load fits')
+  }
   return await res.json()
 }
 
-const { data: fitsData, isLoading } = useQuery({
+const { data: fitsData, isLoading, isError: fitsError } = useQuery({
   queryKey: ['popular-fits', queryParams],
   queryFn: fetchPopularFits,
+  retry: 2,
+  onError: (error: Error) => {
+    showError(error.message)
+  },
 })
 
 function viewFitDetails(fitSignature: string) {
@@ -504,6 +536,17 @@ function clearFilters() {
         <!-- Loading State -->
         <div v-if="isLoading" class="bg-white rounded-lg shadow p-8 text-center">
           <div class="text-slate-500">Loading popular fits...</div>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="fitsError" class="bg-white rounded-lg shadow p-8 text-center">
+          <div class="text-red-600 mb-4">
+            <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="font-medium">Unable to load fits data</p>
+            <p class="text-sm text-slate-600 mt-2">Please try adjusting your filters or refreshing the page</p>
+          </div>
         </div>
 
         <!-- Results -->

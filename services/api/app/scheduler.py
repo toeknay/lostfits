@@ -8,6 +8,7 @@ from loguru import logger
 from redis import Redis
 from rq import Queue
 
+from app.tasks.aggregate import aggregate_fits_daily
 from app.tasks.ingest import enqueue_killmail_fetch, seed_types_from_killmails
 
 
@@ -46,11 +47,28 @@ async def main() -> None:
         max_instances=1,
     )
 
+    # Aggregate fits daily at 4 AM UTC (after item type seeding)
+    # This powers the /api/fits/popular endpoint
+    def enqueue_daily_aggregation() -> None:
+        """Enqueue the daily aggregation task."""
+        job = q.enqueue(aggregate_fits_daily, job_timeout="30m")
+        logger.info(f"Enqueued daily aggregation job: {job.id}")
+
+    sched.add_job(
+        enqueue_daily_aggregation,
+        "cron",
+        hour=4,
+        minute=0,
+        id="aggregate_fits_daily",
+        max_instances=1,
+    )
+
     sched.start()
     logger.info(
         "Scheduler started:\n"
         "  - Fetching killmails every 10 seconds\n"
-        "  - Seeding item types daily at 03:00 UTC"
+        "  - Seeding item types daily at 03:00 UTC\n"
+        "  - Aggregating fits daily at 04:00 UTC"
     )
 
     # Keep the scheduler running

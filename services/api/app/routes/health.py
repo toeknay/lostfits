@@ -8,7 +8,7 @@ router = APIRouter()
 
 
 @router.get("/healthz")
-def healthz() -> dict[str, str]:
-    db: Session = Depends(get_db)
+def healthz(db: Session = Depends(get_db)) -> dict[str, str]:
+    """Health check endpoint that verifies database connectivity."""
     db.execute(text("SELECT 1"))
     return {"status": "ok"}

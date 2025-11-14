@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-slate-50 text-slate-900">
+    <ToastContainer />
     <header class="bg-slate-900 text-white shadow-lg">
       <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
@@ -35,3 +36,7 @@
     </main>
   </div>
 </template>
+
+<script setup lang="ts">
+import ToastContainer from './components/ToastContainer.vue'
+</script>

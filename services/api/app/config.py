@@ -16,6 +16,18 @@ class Settings(BaseSettings):
 
     sentry_dsn: str | None = Field(default=None, alias="SENTRY_DSN")
 
+    # CORS settings
+    cors_origins: list[str] = Field(
+        default=["http://localhost:5173", "http://127.0.0.1:5173"],
+        alias="CORS_ORIGINS",
+        description="Comma-separated list of allowed CORS origins",
+    )
+
+    # Admin API key for protecting admin endpoints
+    admin_api_key: str | None = Field(
+        default=None, alias="ADMIN_API_KEY", description="API key for admin endpoints"
+    )
+
     # ESI-related
     esi_user_agent: str = Field(
         default="lostfits/0.1 (contact: you@example.com)", alias="ESI_USER_AGENT"

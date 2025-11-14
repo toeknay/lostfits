@@ -2,32 +2,46 @@
 import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useRoute, useRouter } from 'vue-router'
+import { useToast } from '../composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
+const { showError } = useToast()
 
 const fitSignature = computed(() => route.params.signature as string)
 
 async function fetchFitDetails() {
   const res = await fetch(`/api/fits/${fitSignature.value}`)
-  if (!res.ok) throw new Error('Failed to fetch fit details')
+  if (!res.ok) {
+    throw new Error(res.status === 404 ? 'Fit not found' : 'Failed to load fit details')
+  }
   return await res.json()
 }
 
 async function fetchFitLocationData() {
   const res = await fetch(`/api/fits/${fitSignature.value}/by-location`)
-  if (!res.ok) throw new Error('Failed to fetch location data')
+  if (!res.ok) {
+    throw new Error('Failed to load location data')
+  }
   return await res.json()
 }
 
-const { data: fitData, isLoading: loadingFit } = useQuery({
+const { data: fitData, isLoading: loadingFit, isError: fitError } = useQuery({
   queryKey: ['fit-details', fitSignature],
   queryFn: fetchFitDetails,
+  retry: 1,
+  onError: (error: Error) => {
+    showError(error.message)
+  },
 })
 
-const { data: locationData, isLoading: loadingLocation } = useQuery({
+const { data: locationData, isLoading: loadingLocation, isError: locationError } = useQuery({
   queryKey: ['fit-location', fitSignature],
   queryFn: fetchFitLocationData,
+  retry: 2,
+  onError: (error: Error) => {
+    showError(error.message)
+  },
 })
 
 // Group items by slot type based on flag
@@ -78,6 +92,17 @@ const groupedItems = computed(() => {
     <!-- Loading State -->
     <div v-if="loadingFit" class="bg-white rounded-lg shadow p-8 text-center">
       <div class="text-slate-500">Loading fit details...</div>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="fitError" class="bg-white rounded-lg shadow p-8 text-center">
+      <div class="text-red-600 mb-4">
+        <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="font-medium">Unable to load fit details</p>
+        <p class="text-sm text-slate-600 mt-2">This fit may not exist or there was an error loading the data</p>
+      </div>
     </div>
 
     <!-- Fit Not Found -->
